@@ -7,7 +7,7 @@
 # https://learnxinyminutes.com/docs/yaml/
 
 title: Andrew Krcatovich
-description: My Blog
+description: AI Enthusiast, Ultra Runner, IRONMAN and Nature Lover
 github_username: akdux1937
 # you can comment the below line out if your repo name is not different than your baseurl
 github_repo: "dux"
@@ -59,7 +59,7 @@ annotations: false
 show_tags: true
 
 # Add your Google Analytics ID here if you have one and want to use it
-# google_analytics: 
+google_analytics: UA-97853281-1
 
 
 exclude:
