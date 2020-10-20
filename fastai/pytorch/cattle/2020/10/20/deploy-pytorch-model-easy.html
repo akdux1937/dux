@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Deploy A PyTorch Model The Easy Way | Andrew Krcatovich</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Deploy A PyTorch Model The Easy Way" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="We’ll deploy the cattle breed predicter model showcased in my last post." />
+<meta property="og:description" content="We’ll deploy the cattle breed predicter model showcased in my last post." />
+<meta property="og:site_name" content="Andrew Krcatovich" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-10-20T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"/dux/fastai/pytorch/cattle/2020/10/20/deploy-pytorch-model-easy.html","@type":"BlogPosting","headline":"Deploy A PyTorch Model The Easy Way","dateModified":"2020-10-20T00:00:00-05:00","datePublished":"2020-10-20T00:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"/dux/fastai/pytorch/cattle/2020/10/20/deploy-pytorch-model-easy.html"},"description":"We’ll deploy the cattle breed predicter model showcased in my last post.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/dux/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="/dux/feed.xml" title="Andrew Krcatovich" /><!-- the google_analytics_id gets auto inserted from the config file -->
+
+
+
+<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create','UA-97853281-1','auto');ga('require','displayfeatures');ga('send','pageview');</script>
+
+<link rel="shortcut icon" type="image/x-icon" href="/dux/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/dux/">Andrew Krcatovich</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/dux/about/">About Me</a><a class="page-link" href="/dux/search/">Search</a><a class="page-link" href="/dux/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Deploy A PyTorch Model The Easy Way</h1><p class="page-description">We'll deploy the cattle breed predicter model showcased in my last post.</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2020-10-20T00:00:00-05:00" itemprop="datePublished">
+        Oct 20, 2020
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      6 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/dux/categories/#fastai">fastai</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/dux/categories/#pytorch">pytorch</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/dux/categories/#cattle">cattle</a>
+        
+      
+      </p>
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-wrap flex-justify-end">
+          <div class="px-2">
+
+    <a href="https://github.com/akdux1937/dux/tree/master/_notebooks/2020-10-20-deploy-pytorch-model-easy.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/dux/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/akdux1937/dux/master?filepath=_notebooks%2F2020-10-20-deploy-pytorch-model-easy.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/dux/assets/badges/binder.svg" alt="Open In Binder"/>
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/akdux1937/dux/blob/master/_notebooks/2020-10-20-deploy-pytorch-model-easy.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/dux/assets/badges/colab.svg" alt="Open In Colab"/>
+    </a>
+</div>
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#Deploy-A-PyTorch-Model-The-Easy-Way">Deploy A PyTorch Model The Easy Way </a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#Tools-we-will-use">Tools we will use </a></li>
+<li class="toc-entry toc-h2"><a href="#Setup">Setup </a></li>
+<li class="toc-entry toc-h2"><a href="#Create-an-App-from-the-Model">Create an App from the Model </a></li>
+<li class="toc-entry toc-h2"><a href="#Turning-The-Notebook-into-a-Real-App">Turning The Notebook into a Real App </a></li>
+<li class="toc-entry toc-h2"><a href="#Binder">Binder </a></li>
+<li class="toc-entry toc-h2"><a href="#Conclusion">Conclusion </a></li>
+</ul>
+</li>
+</ul><!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2020-10-20-deploy-pytorch-model-easy.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Deploy-A-PyTorch-Model-The-Easy-Way">
+<a class="anchor" href="#Deploy-A-PyTorch-Model-The-Easy-Way" aria-hidden="true"><span class="octicon octicon-link"></span></a>Deploy A PyTorch Model The Easy Way<a class="anchor-link" href="#Deploy-A-PyTorch-Model-The-Easy-Way"> </a>
+</h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>What are we doing? Well we are going to create a mock up of an application using IPython widgets, Voilà and Binder. In a production setting you will likely use something more like fastapi or flask to serve a REST api version of your model and connect a nice interactive frontend to it, such as React or Vue JS. I think I'll attempt this later so stay tuned. For now we are going to grab the train model I created in my last post. The goal here is to get something up and shareable as fast as possible.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Tools-we-will-use">
+<a class="anchor" href="#Tools-we-will-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tools we will use<a class="anchor-link" href="#Tools-we-will-use"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>IPython widgets (ipywidgets)</li>
+<li>Voilà</li>
+<li>Binder</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Setup">
+<a class="anchor" href="#Setup" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setup<a class="anchor-link" href="#Setup"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Open up Jupyter Notebooks and start a new notebook. Then install fastai whichever way is easiest for you. I usually choose to use <code>pip</code>. That's it!</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">fastbook</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fastai.vision.widgets</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In the last post I showed how to create a PyTorch model that would predict cattle breeds by uploading a photo. The trained model only works on a handful of different cattle breeds and could certainly be trained to recognize more. The breeds I chose to look at were the most common ones on google. They are <code>'black angus','charolais','hereford', 'simmental', 'red angus', 'texas longhorn', 'holstein', 'limousin', 'highlands'</code>.</p>
+<p>In the last post I showed how a trained model could easily be export as a pickle file and loaded. Below we will just load the previously trained and saved model.</p>
+<p>First we will create a <code>path</code> variable and just check our model does exist there.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">()</span>
+<span class="n">path</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">file_exts</span><span class="o">=</span><span class="s1">'.pkl'</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>(#1) [Path('export.pkl')]</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As we can see there is one file located in the root folder that is a pickle file. This is our trained model.</p>
+<p>When a model is being used for getting predictions, instead of training, it is called inference. To create our inference from the saved pickle file, we use the load_learner function.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">learn_inf</span> <span class="o">=</span> <span class="n">load_learner</span><span class="p">(</span><span class="n">path</span><span class="o">/</span><span class="s1">'export.pkl'</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The inference learner can now be used to predict images like so.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">learn_inf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="s1">'cattle/black angus/00000000.jpg'</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea ">
+
+</div>
+
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>('black angus',
+ tensor(0),
+ tensor([9.5432e-01, 1.8437e-03, 3.1340e-05, 1.2726e-02, 1.9705e-02, 2.0250e-04, 9.1235e-03, 3.7201e-05, 2.0100e-03]))</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This returned three things. The first is the predicted category. Second is the the index of the predicted category. And lastly it returns the probabilities of each category.</p>
+<p>To check what order the categories are in for the probabilities you can access the stored <code>vocab</code> of the DataLoader that was used.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">learn_inf</span><span class="o">.</span><span class="n">dls</span><span class="o">.</span><span class="n">vocab</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>(#9) ['black angus','charolais','hereford','highlands','holstein','limousin','red angus','simmental','texas longhorn']</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>So we can see it returned index <code>0</code>, which happens to be <code>black angus</code> and is showing a probability of ~95%.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Create-an-App-from-the-Model">
+<a class="anchor" href="#Create-an-App-from-the-Model" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create an App from the Model<a class="anchor-link" href="#Create-an-App-from-the-Model"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Down the road I'll show how we can deploy a model using Streamlit and fastapi but for now we will will prototype an application in Jupyter notebooks using IPython widgets and Voilà.</p>
+<p>IPython widgets allow you to add interactive JavaScript components to your Python functions. Such GUI components as buttons, dropdowns, and sliders.</p>
+<p>Voilà on the other hand takes your Jupyter notebook and converts it into a web application. One that a user doesn't have to run or even know that it is a notebook.</p>
+<p>Let's start building our app one step at a time with ipywidgets components. The first thing we will need is a way to upload a file.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">btn_upload</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">FileUpload</span><span class="p">()</span>
+<span class="n">btn_upload</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As you can see the <code>widgets.FileUpload()</code> will produce a button, that when chicked will allow you to upload an image. Once you select and image it will be stored in the <code>btn_upload</code> variable. <code>PILImage.create</code> can create an image from a number of upload formats and works well with our <code>btn_upload</code>.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">PILImage</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">btn_upload</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We can use an Output widget to display it the image.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">out_pl</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Output</span><span class="p">()</span>
+<span class="n">out_pl</span><span class="o">.</span><span class="n">clear_output</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">out_pl</span><span class="p">:</span> <span class="n">display</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">to_thumb</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">))</span>
+<span class="n">out_pl</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>And we can get our predictions by running the following.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">pred</span><span class="p">,</span><span class="n">pred_idx</span><span class="p">,</span><span class="n">probs</span> <span class="o">=</span> <span class="n">learn_inf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea ">
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>There are also widgets we can use to label and show the output of the predictions.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">lbl_pred</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Label</span><span class="p">()</span>
+<span class="n">lbl_pred</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'Prediction: </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s1">; Probability: </span><span class="si">{</span><span class="n">probs</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">]</span><span class="si">:</span><span class="s1">.04f</span><span class="si">}</span><span class="s1">'</span>
+<span class="n">lbl_pred</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Lastly, we will create a button to run the classification. The button is just a button. We will create a call back to run a function which we will piece together below.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">btn_run</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">"What's that cow?"</span><span class="p">)</span>
+<span class="n">btn_run</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here we will create a click event handler function. If you're familiar with React, Vue or plain JS this will come natually. Basically we are creating that python function that will be run when the button <code>What's that cow?</code> is clicked.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">on_click_classify</span><span class="p">(</span><span class="n">change</span><span class="p">):</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">PILImage</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">btn_upload</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">out_pl</span><span class="o">.</span><span class="n">clear_output</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">out_pl</span><span class="p">:</span> <span class="n">display</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">to_thumb</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span><span class="mi">128</span><span class="p">))</span>
+    <span class="n">pred</span><span class="p">,</span><span class="n">pred_idx</span><span class="p">,</span><span class="n">probs</span> <span class="o">=</span> <span class="n">learn_inf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">lbl_pred</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'Prediction: </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s1">; Probability: </span><span class="si">{</span><span class="n">probs</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">]</span><span class="si">:</span><span class="s1">.04f</span><span class="si">}</span><span class="s1">'</span>
+
+<span class="n">btn_run</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">on_click_classify</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Lastly, we will put it all together into on vertical box (VBox). And this completes the mock up GUI.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">btn_upload</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">FileUpload</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">VBox</span><span class="p">([</span><span class="n">widgets</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s1">'Select your cattle!'</span><span class="p">),</span> 
+      <span class="n">btn_upload</span><span class="p">,</span> <span class="n">btn_run</span><span class="p">,</span> <span class="n">out_pl</span><span class="p">,</span> <span class="n">lbl_pred</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Turning-The-Notebook-into-a-Real-App">
+<a class="anchor" href="#Turning-The-Notebook-into-a-Real-App" aria-hidden="true"><span class="octicon octicon-link"></span></a>Turning The Notebook into a Real App<a class="anchor-link" href="#Turning-The-Notebook-into-a-Real-App"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now that everything is working in the Jupyter notebook let's create our application. To do so, start a new Jupyter notebook and copy over only the code needed to create the widgets we need.</p>
+<p>Below is everything I added to the notebook. In the end you won't even be able to see the code there.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="https://github.com/akdux1937/dux/blob/master/images/Screen%20Shot%202020-10-20%20at%204.34.18%20PM.png?raw=true" alt="Screen%20Shot%202020-10-20%20at%204.34.18%20PM.png"></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="https://github.com/akdux1937/dux/blob/master/images/Screen%20Shot%202020-10-20%20at%204.06.12%20PM.png?raw=true" alt="Screen%20Shot%202020-10-20%20at%204.06.12%20PM.png"></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Next, install Voilà by running the following. If you get an error here check the order of <code>!jupyter serverextension enable --sys-prefix voila</code>. I've ran into issues a couple of time, however a quick Google search will tell you what the issue is.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># !jupyter serverextension enable --sys-prefix voila</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now that Voilà is installed and imported you can see how it works. It basically runs the Jupyter notebook server just as it is currently running but it removes all of the inputs and only show the outputs of a cell. This allows use to only show the widgets and output while hiding all of the code used to create it.</p>
+<p>Here is the app I created and how it turned out with Voilà!</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="https://github.com/akdux1937/dux/blob/master/images/Screen%20Shot%202020-10-20%20at%204.37.58%20PM.png?raw=true" alt="Screen%20Shot%202020-10-20%20at%204.37.58%20PM.png"></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Binder">
+<a class="anchor" href="#Binder" aria-hidden="true"><span class="octicon octicon-link"></span></a>Binder<a class="anchor-link" href="#Binder"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Next you can publish your application to the web and share it using <a href="https://mybinder.org/">Binder</a>. Binder is free and requires no sign up. Complete the <code>Build and launch a repository</code>. To do so make sure you added your new notebook to a GitHub repository. Once you have past in the URL of that repository into Binder, change the filed dropdown to select URL. In the "URL to open" type <code>/voila/render/[name].ipynb</code>. Then click launch and this will create a URL that you can copy and share with others! Binder won't keep this here forever but it will stay for a while if it's consistently getting use.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Conclusion">
+<a class="anchor" href="#Conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion<a class="anchor-link" href="#Conclusion"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>That's it! Thank you, and hope you enjoyed reading. Feel free to reach out if you have questions.</p>
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="akdux1937/dux"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/dux/fastai/pytorch/cattle/2020/10/20/deploy-pytorch-model-easy.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/dux/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/dux/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/dux/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>AI Enthusiast, Ultra Runner, IRONMAN and Nature Lover</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/akdux1937" title="akdux1937"><svg class="svg-icon grey"><use xlink:href="/dux/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/andrewkrcatovic" title="andrewkrcatovic"><svg class="svg-icon grey"><use xlink:href="/dux/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
