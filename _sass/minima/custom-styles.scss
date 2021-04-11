@@ -10,3 +10,14 @@
 // If you want to turn off dark background for syntax highlighting, comment or delete the below line.
 @import "minima/fastpages-dracula-highlight"; 
 @import "minima/dark-mode";
+
+
+img.image-preview{
+    // transition-delay: 1s;
+    transition: width 0.3s, height 0.3s, transform 0.3s;
+}
+img.image-preview:hover {
+    transform: scale(1.05);
+    // transition: width 2s, height 2s;
+    // transition-timing-function: ease;
+}
