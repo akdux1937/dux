@@ -524,16 +524,4 @@ img.image-preview:hover { transform: scale(1.05); }
 
 .site-footer { border: none; }
 
-.feed-subscribe .svg-icon { padding: 0px; margin-right: 5px; }
-
-.social-links::after { content: "akdux"; clear: both; display: table; color: #808080cf; font-size: xx-small; margin: auto; white-space: pre; text-align: center; }
-
-.social-links ul.social-media-list, .social-links ul.pagination { display: none; }
-
-.footer-col-wrapper { display: none !important; }
-
-.home-button-tag { opacity: .4; }
-
-.home-button-tag:hover { opacity: 1; }
-
 /*# sourceMappingURL=style.css.map */
