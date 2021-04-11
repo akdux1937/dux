@@ -15,53 +15,53 @@
 .site-header {
     border-bottom: 0px;
 }
-.site-title {
-    color: #42424200 !important;
-    background-image: url("/images/logo.png");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-.site-title:hover{
-    background-color: #ffdead00;
-    color: #ffdead00 !important;
-}
-.search-button{
-    background: url(https://image.flaticon.com/icons/svg/882/882988.svg);
-    background-color: #ffdead00;
-    color: #ffdead00 !important;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    filter: opacity(0.7);
-}
+// .site-title {
+//     color: #42424200 !important;
+//     background-image: url("/images/logo.png");
+//     background-size: contain;
+//     background-repeat: no-repeat;
+//     background-position: center;
+// }
+// .site-title:hover{
+//     background-color: #ffdead00;
+//     color: #ffdead00 !important;
+// }
+// .search-button{
+//     background: url(https://image.flaticon.com/icons/svg/882/882988.svg);
+//     background-color: #ffdead00;
+//     color: #ffdead00 !important;
+//     background-size: contain;
+//     background-repeat: no-repeat;
+//     background-position: center;
+//     filter: opacity(0.7);
+// }
 
 
-.side-project-button{
-    background: url(https://image.flaticon.com/icons/svg/900/900813.svg);
-    background-color: #ffdead00;
-    color: #ffdead00 !important;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    filter: opacity(0.7);
-}
+// .side-project-button{
+//     background: url(https://image.flaticon.com/icons/svg/900/900813.svg);
+//     background-color: #ffdead00;
+//     color: #ffdead00 !important;
+//     background-size: contain;
+//     background-repeat: no-repeat;
+//     background-position: center;
+//     filter: opacity(0.7);
+// }
 
-.tags-button{
-    background: url(https://image.flaticon.com/icons/svg/758/758658.svg);
-    background-color: #ffdead00;
-    color: #ffdead00 !important;
-    /* background-image: url(/images/logo.png); */
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    filter: opacity(0.7);
-}
+// .tags-button{
+//     background: url(https://image.flaticon.com/icons/svg/758/758658.svg);
+//     background-color: #ffdead00;
+//     color: #ffdead00 !important;
+//     /* background-image: url(/images/logo.png); */
+//     background-size: contain;
+//     background-repeat: no-repeat;
+//     background-position: center;
+//     filter: opacity(0.7);
+// }
 
-.search-button:hover, .side-project-button:hover, .tags-button:hover{
-    filter: opacity(1);
-    color: #ffdead00 !important;
-}
+// .search-button:hover, .side-project-button:hover, .tags-button:hover{
+//     filter: opacity(1);
+//     color: #ffdead00 !important;
+// }
 .Box {
     box-shadow: none !important;
     border: none !important;
@@ -69,6 +69,8 @@
 img.image-preview{
     // transition-delay: 1s;
     transition: width 0.3s, height 0.3s, transform 0.3s;
+    width: 100%;
+    height: auto;
 }
 img.image-preview:hover {
     transform: scale(1.05);
