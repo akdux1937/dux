@@ -514,4 +514,8 @@ canvas { filter: invert(100%); }
 
 li .post-meta-description { color: rgba(255, 255, 255, 0.69) !important; }
 
+img.image-preview { transition: width 0.3s, height 0.3s, transform 0.3s; }
+
+img.image-preview:hover { transform: scale(1.05); }
+
 /*# sourceMappingURL=style.css.map */
